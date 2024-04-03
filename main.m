@@ -1,170 +1,141 @@
-% Función principal
-function mapeao1(atr, ~)
-    % Crea la figura
-    fig = uifigure('Name', 'Mapeo y Funciones Armónicas', 'Color', [0.15 0.15 0.15]);
-    
-    % Crea los botones de la interfaz
-    map_button = uibutton(fig, 'push', 'Position', [240, 210, 120, 20], ...
-        'Text', 'Mapeo de funciones', 'ButtonPushedFcn', @Map_submenu, 'BackgroundColor', [0.3 0.75 0.93]);
-    arm_button = uibutton(fig, 'push', 'Position', [240, 180, 120, 20], ...
-        'Text', 'Funciones armónicas', 'ButtonPushedFcn', @Arm_submenu, 'BackgroundColor', [0.3 0.75 0.93]);
+function Practica1(atr, ~)
+% Práctica 1
+% Objetivo: Crear interfaces gráficas para la simulación de mapeos, en donde se pueda introducir un dominio a través de una ventana de ingreso de dominio y de mapeo y que se muestre en que es mapeado dicho dominio
 
-    % Submenú de mapeo
+% Crear una interfaz gráfica que solicite, el dominio, y la función que mapea el dominio
+% Que solicite el intervalo donde se desea ver el dominio mapeado 
+% Que el gráfico de la función dominio se vea de forma paralela al mapeo en que es mapeado ese dominio
+
+% 1. Crear una interfaz gráfica que solicite, una función componente de una función f(z), es decir U ó V
+% 2. Identificar si dicha función es armónica
+% 3. En caso afirmativo, el sistema debe hallar el armónico conjugado y mostrar la función f(z)
+    clf;
+    map_button=uicontrol('Style','pushbutton','Position',[240,210,120,20],...
+        'String','Mapeo de funciones','Callback',@Map_submenu);
+    arm_button=uicontrol('Style','pushbutton','Position',[240,180,120,20], ...
+        'String', 'Funciones armónicas', 'Callback', @Arm_submenu);
+
     function Map_submenu(atr, ~)
-        % Crea los campos de texto y botones de la interfaz
-        dom_box = uieditfield(fig, 'Position', [240, 240, 120, 20], ...
-            'Placeholder', 'ingrese dominio', 'FontColor', 'white', 'BackgroundColor', [0.25 0.25 0.25]);
-        map_box = uieditfield(fig, 'Position', [240, 210, 120, 20], ...
-            'Placeholder', 'ingrese mapeo', 'FontColor', 'white', 'BackgroundColor', [0.25 0.25 0.25]);
-        interval_box = uieditfield(fig, 'Position', [240, 180, 120, 20], ...
-            'Placeholder', 'ingrese intervalo', 'FontColor', 'white', 'BackgroundColor', [0.25 0.25 0.25]);
-        exe_button = uibutton(fig, 'push', 'Position', [240, 150, 120, 20], ...
-            'Text', 'Ejecutar', 'ButtonPushedFcn', @Mapeo, 'BackgroundColor', [0.3 0.75 0.93]);
-        ret_button = uibutton(fig, 'push', 'Position', [240, 120, 120, 20], ...
-            'Text', 'Regresar', 'ButtonPushedFcn', @mapeao1, 'BackgroundColor', [0.3 0.75 0.93]);
+        clf;
+        dom_title = uicontrol("Style",'text','String', 'Ingrese Dominio: ', ...
+            'Position', [240,300,120,20])
+        dom_box=uicontrol('Style','edit','Position',[240,285,120,20]);
+        map_title = uicontrol("Style",'text','String', 'Ingrese Mapeo: ', ...
+            'Position', [240,260,120,20])
+        map_box=uicontrol('Style','edit','Position',[240,245,120,20]);
+        interval_title = uicontrol("Style",'text','String', 'Ingrese Intervalo: ', ...
+            'Position', [240,220,120,20])
+        interval_box=uicontrol('Style','edit','Position',[240,205,120,20]);
+        exe_button=uicontrol('Style','pushbutton','Position',[240,175,120,20],...
+        'String','Ejecutar','Callback',@Mapeo);
+        ret_button=uicontrol('Style','pushbutton','Position',[240,60,120,20], ...
+                'String', 'Regresar', 'Callback', @Practica1)
+        
 
-        % Función de mapeo
-        function Mapeo(atr, ~)
-            % Define las variables simbólicas
-            x = sym('x');
-            y = sym('y');
-            z = sym('z');
+        function Mapeo(atr,~)
+            x=sym('x');
+            y=sym('y');
+            z=sym('z');
+            dom_funct=str2sym(get(dom_box,'string'))
+            map_funct=str2sym(get(map_box,'string'))    
+            f1=subs(map_funct,z,x+1i*y)
+            f2=subs(f1,y,dom_funct);
+            u=real(f2);
+            v=imag(f2);
+            limit = split(get(interval_box, 'string'), ',');
+            l_limit = str2double(limit(1));
+            r_limit = str2double(limit(2));
+            interval=linspace(l_limit,r_limit, (r_limit-l_limit)*10)
+            u1=eval(subs(u,x,interval));
+            v1=eval(subs(v,x,interval));
             
-            % Obtiene las funciones del usuario
-            dom_funct = str2sym(dom_box.Value);
-            map_funct = str2sym(map_box.Value);
-            
-            % Realiza el mapeo
-            f1 = subs(map_funct, z, x + 1i * y);
-            f2 = subs(f1, y, dom_funct);
-            u = real(f2);
-            v = imag(f2);
-            
-            % Obtiene el intervalo del usuario
-            interval = str2num(interval_box.Value);
-            
-            % Sustituye el intervalo en las funciones
-            u1 = subs(u, x, interval);
-            v1 = subs(v, x, interval);
-            
-            % Grafica la función en el dominio
-            subplot(2, 1, 1);
-            fplot(dom_funct);
+            clf;
+            subplot(2,1,1)
+            fplot(dom_funct)
             grid on;
-            title('Gráfica de la función en el dominio');
-            xlabel('x');
-            ylabel('y');
-            
-            % Grafica la función mapeada
-            subplot(2, 1, 2);
-            plot(u1, v1);
+            title("Gráfica de la función en el dominio")
+            xlabel("x")
+            ylabel("y")
+        
+            subplot(2,1,2)
+            plot(u1,v1)
             grid on;
-            title('Gráfica de la función mapeada');
-            xlabel('u');
-            ylabel('v');
-            
-            % Crea el botón de regreso
-            ret_button = uibutton(fig, 'push', 'Position', [240, 5, 120, 20], ...
-                'Text', 'Limpiar', 'ButtonPushedFcn', @Map_submenu, 'BackgroundColor', [0.3 0.75 0.93]);
+            title("Gráfica de la función mapeada")
+            xlabel("u")
+            ylabel("v")
+          
+            ret_button=uicontrol('Style','pushbutton','Position',[240,5,120,20], ...
+                'String', 'Regresar', 'Callback', @Map_submenu)
+        
         end
     end
 
-% Submenú de funciones armónicas
-function Arm_submenu(atr, ~)
-    % Crea una nueva figura
-    fig2 = uifigure('Name', 'Funciones Armónicas', 'Color', [0.15 0.15 0.15]);
-    
-    % Crea los campos de texto y botones de la interfaz
-    funcion_u = uieditfield(fig2, 'Position', [200 289 261 31], ...
-        'FontName', 'Artifakt Element', 'FontSize', 10, 'Placeholder', 'Funcion u(x,y)', ...
-        'HorizontalAlignment', 'center', 'FontColor', 'white', 'BackgroundColor', [0.25 0.25 0.25]);
-    funcion_v = uieditfield(fig2, 'Position', [200 239 261 31], ...
-        'FontName', 'Artifakt Element', 'FontSize', 10, 'Placeholder', 'Funcion v(x,y)', ...
-        'HorizontalAlignment', 'center', 'FontColor', 'white', 'BackgroundColor', [0.25 0.25 0.25]);
-    campo_armonico = uitextarea(fig2, 'Value', 'Resultado evaluación armónico', ...
-        'Position', [200 189 261 51], 'BackgroundColor', [0.25 0.25 0.25], 'FontName', 'Artifakt Element', ...
-        'FontSize', 12, 'Editable', 'off', 'HorizontalAlignment', 'center', 'FontColor', 'white');
-    campo_fz = uitextarea(fig2, 'Value', 'Función f(z)', ...
-        'Position', [200 138 261 38], 'BackgroundColor', [0.25 0.25 0.25], 'FontName', 'Artifakt Element', ...
-        'FontSize', 12, 'Editable', 'off', 'HorizontalAlignment', 'center', 'FontColor', 'white');
-    boton_evaluar = uibutton(fig2, 'push', 'Text', 'Evaluar', ...
-        'Position', [300 98 69 28], 'FontName', 'Artifakt Element', 'FontSize', 10, ...
-        'ButtonPushedFcn', @(src, event) armonico(), 'BackgroundColor', [0.3 0.75 0.93]);
-    ret_button = uibutton(fig2, 'push', 'Position', [300 58 120 20], ...
-        'Text', 'Regresar', 'ButtonPushedFcn', @(src, event) close(fig2), 'BackgroundColor', [0.3 0.75 0.93]);
+    function Arm_submenu(atr,~)
+        clf;
+        u_box=uicontrol('Style','edit','Position',[240,240,120,20],...
+        'String','Ingrese u');
+        v_box=uicontrol('Style', 'edit', 'Position',[240, 210, 120, 20], ...
+            'String', 'Ingrese v')
+        exe_button=uicontrol('Style','pushbutton','Position',[240,180,120,20],...
+        'String','Ejecutar','Callback',@Armonic);
+        ret_button=uicontrol('Style','pushbutton','Position',[240,60,120,20], ...
+                'String', 'Regresar', 'Callback', @Practica1);
 
-        % Función de armónicas
-        function armonico()
-            x = sym('x');
-            y = sym('y');
-            z = sym('z');
-            k = sym('k');
-            
-            if isempty(funcion_v.Value) && (isempty(funcion_u.Value) == 0)
-                u = str2sym(funcion_u.Value);
-                d2u = diff(u, x, 2) + diff(u, y, 2);
-                if d2u == 0
-                    campo_armonico.Value = "La función es armónica";
-                    dvy = diff(u, x);
-                    v = int(dvy, y);
-                    dvx = diff(v, x);
-                    duy = diff(u, y);
-                    if dvx == -duy
-                        gx = k;
-                    else
-                        gx = int(-diff(u, y), x);
-                    end
-                    v1 = v + gx;
-                    funcion_v.Value = string(v1);
-                    fz = u + j * (v1);
-                    campo_fz.Value = string(fz);
+        function Armonic(atr,~)
+            str1=uicontrol('Style', 'text', 'String', '', 'Position',[240 120 120 40]);
+            str2=uicontrol('Style', 'text', 'String', '', 'Position',[240 90 120 20]);
+            x=sym('x');
+            y=sym('y');
+            z=sym('z');
+            u=str2sym(get(u_box,'string'));
+            v=str2sym(get(v_box,'string'));
+
+            if u == "Ingreseu"
+                u=0;
+            end
+
+            if v == 'Ingresev'
+                v=0;
+            end
+
+            if u ~= 0 && (diff(u,x,2)+diff(u,y,2)==0) && v ~= 0 && (diff(v,x,2)+diff(v,y,2)==0)
+                dvy = diff(v,y);
+                dux = diff(u,x);
+                dvx = diff(v,x);
+                duy = diff(u,y);
+
+                if (dvy == dux) && (duy == -dvx)
+                    set(str2, 'string', "La función es armónica");
+                    fz = u + 1i*v;
+                    set(str2, 'string', string(fz));
+
                 else
-                    campo_armonico.Value = "La función NO es armónica";
-                    campo_fz.Value = "";
+                    set(str1, 'string', "La función es armónica y el conjugado v(x,y) no corresponde a u(x,y)");
+
                 end
 
-            elseif isempty(funcion_u.Value) && (isempty(funcion_v.Value) == 0)
-                v = str2sym(funcion_v.Value);
-                d2v = diff(v, x, 2) + diff(v, y, 2);
-                if d2v == 0
-                    campo_armonico.Value = "La función es armónica";
-                    ux = diff(v, y);
-                    u = int(ux, x);
-                    funcion_u.Value = string(u);
-                    fz = u + j * v;
-                    campo_fz.Value = string(fz);
-                else
-                    campo_armonico.Value = "La función NO es armónica";
-                    campo_fz.Value = "";
-                end
-            
-            elseif (isempty(funcion_u.Value) == 0) && (isempty(funcion_v.Value) == 0)
-                u = str2sym(funcion_u.Value);
-                v = str2sym(funcion_v.Value);
-                d2u = diff(u, x, 2) + diff(u, y, 2);
-                if d2u == 0
-                    dvy = diff(v, y);
-                    dux = diff(u, x);
-                    dvx = diff(v, x);
-                    duy = diff(u, y);
-                    if (dvy == dux) && (duy == -dvx)
-                        campo_armonico.Value = "La función es armónica";
-                        fz = u + j * v;
-                        campo_fz.Value = string(fz);
-                    else
-                        linea_texto = sprintf("%s\n%s", "La función es armónica", "El conjugado v(x,y) no corresponde a u(x,y)");
-                        campo_armonico.Value = linea_texto;
-                        campo_fz.Value = "";
-                    end
-                else
-                    campo_armonico.Value = "La función NO es armónica";
-                    campo_fz.Value = "";
-                end
+            elseif u ~= 0 && (diff(u,x,2)+diff(u,y,2)==0) && v == 0
+                    set(str1, 'string', 'Función armónica')
+                    v1=int(diff(u,x),y);
+                    g=int(diff(v1,x)+diff(u,y));
+                    v=v1+g;
+                    f=u+1i*v;
+                    f1=subs(f,{x,y},{z,0});
+                    set(str2, 'string', string(f1))
+                
+            elseif v ~= 0 && (diff(v,x,2)+diff(v,y,2)==0) && u == 0
+                    set(str1, 'string', 'Función armónica')
+                    u1=int(diff(v,x),y);
+                    g=int(diff(u1,x)+diff(v,y));
+                    u=u1+g;
+                    f=u+1i*v;
+                    f1=subs(f,{x,y},{z,0});
+                    set(str2, 'string', string(f1))
 
             else
-                campo_fz.Value = "Debe ingresar una función";
-                campo_armonico.Value = "Debe ingresar una función";
+                    set(str1, 'string', 'Función no armónica')
+        
+                end
             end
-        end
     end
 end
